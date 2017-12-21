@@ -1,0 +1,294 @@
+import java.util.Scanner;
+
+	public class B23358236 {
+		public static void main(String args[]) {
+			System.out.println("Homework B by  Axana Chhetri "); 
+			Deque<String> q = new ArrayDeque<>();
+			Deque<String> qLink = new LinkedDeque<>();
+			testDeque(q, qLink); 
+		}
+
+		public static void testDeque(Deque<String> q, Deque<String> qLink) {
+			boolean done = false;
+			Scanner sc = new Scanner(System.in);
+			while (!done) {
+				try {
+					System.out.println(" Array queue: " + q + "  ");
+					System.out.print("Linked queue: " + qLink + "      ");
+					System.out.println("\ncmds are a r A R Q: >>");
+					String cmd = sc.next();
+					String entry = null;
+					char command = cmd.charAt(0);
+					if (command == 'a' || command == 'A')
+						entry = sc.next();
+					switch (cmd.charAt(0)) {
+					case 'Q':
+						done = true;
+						break;
+					case 'a':
+						q.addFront(entry);
+						qLink.addFront(entry);
+						break;
+					case 'A':
+						q.addRear(entry);
+						qLink.addRear(entry);
+						break;
+					case 'r':
+						q.removeFront();
+						qLink.removeFront();
+						break;
+					case 'R':
+						q.removeRear();
+						qLink.removeRear();
+						break;
+					}
+				} catch (Exception e) {
+					System.out.println("Error " + e.toString());
+				}
+			}
+			sc.close();
+		}
+	}
+
+	interface Deque<T> {
+		public T removeFront() throws Exception;
+
+		public T removeRear() throws Exception;
+
+		public void addFront(T x) throws Exception;
+
+		public void addRear(T x) throws Exception;
+
+		public boolean empty();
+
+		public int size();
+	}
+
+	class ArrayDeque<T> implements Deque<T> {
+		private T data[];
+		private int front, rear, size, capacity;
+
+		public ArrayDeque() {
+			capacity = 1000;
+			data = (T[]) new Object[capacity];
+			front = size = 0;
+			rear = 1;
+		}
+
+		public ArrayDeque(int c) {
+			capacity = c;
+			data = (T[]) new Object[capacity];
+			front = size = 0;
+			rear = 1;
+		}
+
+		public int size() {
+			return size;
+		}
+
+		public boolean empty() {
+			return size == 0;
+		}
+
+		public void addFront(T x) throws Exception {
+			if (size() == capacity)
+				throw new Exception("Deque is Full");
+			data[front--] = x;
+			if (front < 0)
+				front = capacity - 1;
+			size++;
+		}
+
+		public void addRear(T x) throws Exception {
+			if (size() == capacity)
+				throw new Exception("Deque is Full");
+			data[rear++] = x;
+			if (rear == capacity)
+				rear = 0;
+			size++;
+		}
+
+		public T removeFront() throws Exception {
+			if (empty())
+				throw new Exception("Deque Empty");
+			front = front + 1;
+			if (front == capacity)
+				front = 0;
+			size--;
+			return data[front];
+		}
+
+		public T removeRear() throws Exception {
+			if (empty())
+				throw new Exception("Deque Empty");
+			rear = rear - 1;
+			if (rear == -1)
+				rear = capacity - 1;
+			size--;
+			return data[rear];
+		}
+		// methods for testing purposes
+			public String toString() {
+				int i, j;
+				String ans = "";
+				for (i = 0, j = front + 1; i < size; i++, j++) {
+					if (j == capacity)
+						j = 0;
+					ans += data[j];
+					if (i < size - 1) ans += " -> ";
+				}
+				return ans;
+			}
+
+		}
+
+		class DNode<T> {
+			private T data;
+			private DNode<T> prev, next;
+
+			public DNode(T x, DNode<T> p, DNode<T> n) {
+				data = x;
+				prev = p;
+				next = n;
+			}
+
+			public T getData() {
+				return data;
+			}
+
+			public DNode<T> getNext() {
+				return next;
+			}
+
+			public DNode<T> getPrev() {
+				return prev;
+			}
+
+			public void setData(T x) {
+				data = x;
+			}
+
+			public void setNext(DNode<T> n) {
+				next = n;
+			}
+
+			public void setPrev(DNode<T> p) {
+				prev = p;
+			}
+		}
+
+		class LinkedDeque<T> implements Deque<T> {
+			private DNode<T> front, rear;
+			private int size;
+
+			public LinkedDeque() {
+				front = null;
+			       rear = null;
+			       size = 0;
+			}
+
+			public int size() {
+				return size;
+			}
+
+			public boolean empty() {
+				return (size==0);
+			}
+
+			  public void addFront(T x) throws Exception {
+			 
+			       DNode<T> newNode = new DNode(x, null, null);
+
+			       // Check if the Deque is empty
+			       if (empty()) {
+			           front = newNode;
+			           rear = front;
+			       } else {
+			           // Set newNode's next
+			           newNode.setNext(front);
+			          
+			           // Set front's prev as newNode
+			           front.setPrev(newNode);
+			          
+			           // Set newNode as the new front
+			           front = newNode;
+			       }
+			      
+			       size++;
+			   }
+
+			   
+			 
+			   public void addRear(T x) throws Exception {
+			       DNode<T> newNode = new DNode(x, null, null);
+
+			     
+			       if (empty()) {
+			           front = newNode;
+			           rear = front;
+			       } else {
+			           // Set newNode's prev as rear
+			           newNode.setPrev(rear);
+			          
+			           // Set rear's next as newNode
+			           rear.setNext(newNode);
+			          
+			           // Set newNode as the new rear
+			           rear = newNode;
+			       }
+			      
+			       size ++;
+			   }
+
+			  
+			   public T removeFront() throws Exception {
+			       if (empty())
+			           throw new Exception("Deque is Empty");
+			       else {
+			           T data = front.getData();
+			           // Set new front
+			           front = front.getNext();
+			          
+			           // Set front's prev as null
+			           if (front != null)
+			               front.setPrev(null);
+			          
+			           size--;
+			           return data;
+			       }
+			   }
+
+			  
+			   public T removeRear() throws Exception {
+			       if (empty())
+			           throw new Exception("Deque Empty");
+			       else {
+			           T data = rear.getData();
+			           // Set new rear
+			           rear = rear.getPrev();
+			          
+			           if (rear != null)
+			               rear.setNext(null);
+			          
+			           size--;
+			           return data;
+			       }
+			   }
+
+			   public String toString() {
+			       StringBuffer sb = new StringBuffer();
+			      
+			       if (size != 0) {
+			           DNode<T> node = front;
+			           sb.append(node.getData());
+			           node = node.getNext();
+			          
+			           while (node != null) {
+			               sb.append(" -> " + node.getData());
+			               node = node.getNext();
+			           }
+			       }
+			      
+			       return sb.toString();
+			   }
+			}
