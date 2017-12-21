@@ -1,0 +1,194 @@
+package mapAndSet;
+
+public class ComparableEntry<Key extends Comparable<Key>, Value> extends Entry<Key, Value>  
+   implements Comparable<ComparableEntry<Key, Value>>{
+
+   public ComparableEntry(Key k, Value v) {
+      super(k, v);
+   }
+
+   public int compareTo(ComparableEntry<Key, Value> a) {
+      return k.compareTo(a.k);
+   }
+}
+------------------------------------------------------
+package mapAndSet;
+
+public class Entry<Key, Value> {
+   protected Key k;
+   protected Value v;
+
+   public int hashCode() {
+      return k.hashCode();
+   }
+
+   public boolean equals(Object x) {
+      Key kk;
+      try {
+         kk = (Key) ((Entry) x).k;
+      } catch (Exception e) {
+         return false;
+      }
+      return k.equals(kk);
+   }
+
+   public Key getKey() {
+      return k;
+   }
+
+   public void setKey(Key k) {
+      this.k = k;
+   }
+
+   public Value getValue() {
+      return v;
+   }
+
+   public void setValue(Value v) {
+      this.v = v;
+   }
+
+   public Entry(Key k, Value v) {
+      this.k = k;
+      this.v = v;
+   }
+
+   public String toString() {
+      return k + "->" + v;
+   }
+}
+--------------------------------------------------------------------
+package mapAndSet;
+
+public interface Map<K, V> {
+   public int size();
+
+   public boolean isEmpty();
+
+   public V get(K k);
+
+   public void put(K k, V v) throws Exception;
+
+   public void remove(K k);
+
+   public Set<K> keySet() throws Exception;
+
+   public void dumpTable();
+}
+-------------------------------------------------------
+package mapAndSet;
+
+import java.util.Iterator;
+
+public interface Set<E> extends Iterable<E> {
+   public int size();
+
+   public boolean isEmpty();
+
+   public boolean contains(E k);
+
+   public E get(E k);
+
+   public void add(E k) throws Exception;
+
+   public void remove(E k);
+
+   public Iterator<E> iterator();
+
+   public void dumpData();
+}
+------------------------------------------------------------
+package mapAndSet;
+
+import bst.BST;
+import chainedHash.ChainedHashTable;
+
+public class SetAdapterMap<K, V> implements Map<K, V> {
+   protected Set<Entry<K, V>> table;
+
+   public SetAdapterMap(Set<Entry<K, V>> s) {
+      table = s;
+   }
+
+   public int size() {
+      return table.size();
+   }
+
+   public boolean isEmpty() {
+      return table.isEmpty();
+   }
+
+   public V get(K k) {
+      try {
+         return table.get(new Entry<K, V>(k, null)).getValue();
+      } catch (Exception e) {
+         return null;
+      }
+   }
+
+   public void put(K k, V v) throws Exception {
+      table.add(new Entry<K, V>(k, v));
+   }
+
+   public void remove(K k) {
+      table.remove(new Entry<K, V>(k, null));
+   }
+
+   public Set<K> keySet() throws Exception {
+      Set<K> answer = new ChainedHashTable<K>(size());
+      for (Entry<K, V> e : table)
+         answer.add(e.getKey());
+      return answer;
+   }
+
+   public void dumpTable() {
+      table.dumpData();
+   }
+}
+----------------------------------------------
+package mapAndSet;
+
+import avl.AVLTree;
+
+public class SetComparableAdapterMap<K extends Comparable<K>, V> implements Map<K, V> {
+   protected Set<ComparableEntry<K, V>> table;
+
+   public SetComparableAdapterMap(Set<ComparableEntry<K, V>> s) {
+      table = s;
+   }
+
+   public int size() {
+      return table.size();
+   }
+
+   public boolean isEmpty() {
+      return table.isEmpty();
+   }
+
+   public V get(K k) {
+      try {
+         return table.get(new ComparableEntry<K, V>(k, null)).getValue();
+      } catch (Exception e) {
+         return null;
+      }
+   }
+
+   public void put(K k, V v) throws Exception {
+      table.add(new ComparableEntry<K, V>(k, v));
+   }
+
+   public void remove(K k) {
+      table.remove(new ComparableEntry<K, V>(k, null));
+   }
+
+   public Set<K> keySet() throws Exception {
+      Set<K> answer = new AVLTree<K>();
+      for (Entry<K, V> e : table)
+         answer.add(e.getKey());
+      return answer;
+   }
+
+   public void dumpTable() {
+      table.dumpData();
+   }
+}
