@@ -1,0 +1,171 @@
+package binaryTree;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+
+import generalTree.Node;
+
+public class BNode<T> extends Node<T> {
+   BNode<T> left, right;
+
+   public BNode(T d, BNode<T> p, BNode<T> l, BNode<T> r) {
+      setData(d);
+      setParent(p);
+      left = l;
+      right = r;
+   }
+
+   public void setLeft(BNode<T> n) {
+      left = n;
+   }
+
+   public void setRight(BNode<T> n) {
+      right = n;
+   }
+
+   public BNode<T> getLeft() {
+      return left;
+   }
+
+   public BNode<T> getRight() {
+      return right;
+   }
+
+   public Iterator<BNode<T>> children() {
+      ArrayList<BNode<T>> v = new ArrayList<>();
+      if (left != null) v.add(left);
+      if (right != null) v.add(right);
+      return v.iterator();
+   }
+   
+   public void removeChild(BNode<T> n) {
+      if (getLeft() == n) setLeft(null);
+      else setRight(null);
+   }
+   
+   public String toString() {  // for testing and debugging
+      return "Node " + data;
+   }
+}
+--------------------------------------------------------------------------
+package binaryTree;
+
+import java.util.Scanner;
+
+public class BTreeApp {
+   public static void main(String args[]) {
+      BinaryTree<String> g = new BinaryTree<>();
+      BNode<String> cursor = null;
+      Scanner s = new Scanner(System.in);
+      while (true) {
+         try {
+            System.out.println(g.treePrint(cursor)
+                        + "  commands act at the *cursor*:  l r X . > < ^ H S Q:");
+            String cmd = s.next();
+            if (cmd.charAt(0) == 'Q') break;
+            if (cmd.charAt(0) == 'H') System.out.println(g.height());
+            if (cmd.charAt(0) == 'S') System.out.println(g.size());
+            if (cmd.charAt(0) == 'X' && cursor != null) {
+               g.removeNode(cursor);
+               cursor = (BNode<String>) g.root();
+            }
+            if (cmd.charAt(0) == 'l') {
+               String entry = s.next();
+               if (g.size() > 0) g.addLeft(cursor, entry);
+               else g.addRoot(entry);
+            }
+            if (cmd.charAt(0) == 'r') {
+               String entry = s.next();
+               if (g.size() > 0) g.addRight(cursor, entry);
+               else g.addRoot(entry);
+            }
+            if (cmd.charAt(0) == '.') cursor = (BNode<String>) g.root();
+            if (cmd.charAt(0) == '>') cursor = cursor.getRight();
+            if (cmd.charAt(0) == '<') cursor = cursor.getLeft();
+            if (cmd.charAt(0) == '^') cursor = (BNode<String>) cursor.getParent();
+         } catch (Exception e) {
+            System.out.println(e);
+         }
+      }
+      s.close();
+   }
+}
+-----------------------------------------------------
+package binaryTree;
+
+import java.util.ArrayList;
+
+import generalTree.Tree;
+
+public class BinaryTree<T> extends Tree<T> {
+   public BinaryTree() {
+      super();
+   }
+
+   public void addRoot(T x) throws Exception {
+      if (root != null) throw new Exception("The tree is not empty");
+      root = new BNode<T>(x, null, null, null);
+      size++;
+   }
+
+   public void addLeft(BNode<T> n, T x) throws Exception {
+      if (n.getLeft() != null) throw new Exception("Already used");
+      n.setLeft(new BNode<T>(x, n, null, null));
+      size++;
+   }
+
+   public void addRight(BNode<T> n, T x) throws Exception {
+      if (n.getRight() != null) throw new Exception("Already used");
+      n.setRight(new BNode<T>(x, n, null, null));
+      size++;
+   }
+
+   // returns the parent of the removed node
+   public BNode<T> removeNode(BNode<T> n) {
+      if (isLeaf(n)) {  // base case
+         BNode<T> p = (BNode<T>) parent(n);
+         if (p == null) root = null;
+         else p.removeChild(n);
+         size--;
+         return p;
+      }
+      if (n.getLeft() != null) {
+         BNode<T> m = rightmostLeftDescendant(n);
+         n.setData(m.getData());
+         return removeNode(m);   // recursively remove rightmost left descendant
+      }
+      // otherwise n does have a right child
+      BNode<T> m = leftmostRightDescendant(n);
+      n.setData(m.getData());
+      return removeNode(m);
+   }
+   
+   public BNode<T> leftmostRightDescendant(BNode<T> n) {
+      BNode<T> m = n.getRight();
+      while (m.getLeft() != null) m = m.getLeft();
+      return m;
+   }
+
+   public BNode<T> rightmostLeftDescendant(BNode<T> n) {
+      BNode<T> m = n.getLeft();
+      while (m.getRight() != null) m = m.getRight();
+      return m;
+   }
+
+   public ArrayList<BNode<T>> inOrder() {
+      ArrayList<BNode<T>> answer = new ArrayList<BNode<T>>();
+      inOrder((BNode<T>) root(), answer);
+      return answer;
+   }
+
+   public void inOrder(BNode<T> n, ArrayList<BNode<T>> v) {
+      if (n == null) return;
+      inOrder(n.getLeft(), v);
+      v.add(n);
+      inOrder(n.getRight(), v);
+   }
+   
+   public ArrayList<BNode<T>> flatOrder() {
+      return inOrder();
+   }
+}
