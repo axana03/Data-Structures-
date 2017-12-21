@@ -1,0 +1,346 @@
+package generalTree;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+
+public class GNode<T> extends Node<T> {
+   private ArrayList<GNode<T>> children;
+
+   public GNode(T d, GNode<T> p) {
+      parent = p;
+      data = d;
+      children = new ArrayList<GNode<T>>();
+   }
+
+   public void add(GNode<T> n) {
+      children.add(n);
+   }
+
+   public void add(int i, GNode<T> n) {
+      children.add(i, n);
+   }
+
+   public GNode<T> get(int i) {
+      return children.get(i);
+   }
+
+   public Iterator<GNode<T>> children() {
+      return children.iterator();
+   }
+
+   public int numberChildren() {
+      return children.size();
+   }
+
+   public int size() {
+      int count = 1;
+      Iterator<? extends GNode<T>> x = children();
+      while (x.hasNext())
+         count += x.next().size();
+      return count;
+   }
+
+   public void remove(GNode<T> x) {
+      children.remove(x);
+   }
+}
+-----------------------------------------------------------------------------------------------------------
+package generalTree;
+
+import java.util.Iterator;
+import java.util.Scanner;
+
+public class GTreeApp {
+   public static void main(String args[]) {
+      GeneralTree<String> g = new GeneralTree<>();
+      testTree(g);
+   }
+
+   public static void testTree(GeneralTree<String> g) {
+      GNode<String> cursor = null;
+      Scanner s = new Scanner(System.in);
+      while (true) {
+         try {
+            System.out
+                  .println(g.treePrint(cursor)
+                        + "  commands act at the *cursor*:  + - > >^ >- >> H S Q:");
+            String cmd = s.next();
+            if (cmd.charAt(0) == 'Q')
+               break;
+            else if (cmd.charAt(0) == 'H')
+               System.out.println(g.height());
+            else if (cmd.charAt(0) == 'S')
+               System.out.println(g.size());
+            else if (cmd.charAt(0) == '-' && cursor != null) {
+               g.remove(cursor);
+               cursor = null;
+            } else if (cmd.charAt(0) == '+') {
+               String entry = s.next();
+               if (cursor == null && g.root == null)
+                  g.add(entry);
+               if (cursor != null)
+                  g.add(cursor, entry);
+            }
+            if (cmd.charAt(0) == '>') {
+               try {
+                  if (cmd.length() == 1)
+                     cursor = (GNode<String>) g.root();
+                  else if (cmd.charAt(1) == '^')
+                     cursor = (GNode<String>) cursor.getParent();
+                  else if (cmd.charAt(1) == '-') {
+                     GNode<String> p = (GNode<String>) cursor
+                           .getParent();
+                     Iterator<? extends Node<String>> sibs = g
+                           .children(p);
+                     while (sibs.hasNext() && sibs.next() != cursor)
+                        ;
+                     cursor = (GNode<String>) sibs.next();
+                  } else if (cmd.charAt(1) == '>')
+                     cursor = (GNode<String>) g.children(cursor).next();
+               } catch (Exception e) {
+                  cursor = null;
+               }
+            }
+         } catch (Exception e) {
+            System.out.println(e);
+         }
+      }
+      s.close();
+   }
+}
+------------------------------------------------------------------
+
+package generalTree;
+
+class GeneralTree<T> extends Tree<T> {
+   public GeneralTree() {
+      super();
+   }
+
+   public void add(T x) {
+      if (root != null)
+         throw new RuntimeException();
+      root = new GNode<T>(x, null);
+      size++;
+   }
+
+   public void add(GNode<T> cursor, T e) {
+      cursor.add(new GNode<T>(e, cursor));
+      size++;
+   }
+
+   public void add(GNode<T> p, int i, T x) {
+      if (p.numberChildren() < i || i < 0)
+         throw new RuntimeException();
+      p.add(i, new GNode<T>(x, p));
+      size++;
+   }
+
+   public GNode<T> remove(GNode<T> n) {
+      GNode<T> p = (GNode<T>) parent(n);
+      size -= n.size();
+      if (p == null) {
+         root = null;
+      } else
+         p.remove(n);
+      return p;
+   }
+}
+---------------------------------------------------------------
+package generalTree;
+
+import java.util.Iterator;
+
+public abstract class Node<T> {
+   protected Node<T> parent;
+   protected T data;
+
+   public abstract Iterator<? extends Node<T>> children();
+
+   public void setParent(Node<T> n) {
+      parent = n;
+   }
+
+   public void setData(T t) {
+      data = t;
+   }
+
+   public Node<T> getParent() {
+      return parent;
+   }
+
+   public T getData() {
+      return data;
+   }
+}
+------------------------------------------------
+package generalTree;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+
+public class Tree<T> {
+   protected Node<T> root;
+   public int size;
+
+   public Tree() {
+      root = null;
+      size = 0;
+   }
+
+   public Node<T> root() {
+      return root;
+   }
+
+   public Node<T> parent(Node<T> v) {
+      return v.getParent();
+   }
+
+   public Iterator<? extends Node<T>> children(Node<T> v) {
+      return v.children();
+   }
+
+   public boolean isRoot(Node<T> v) {
+      return v == root;
+   }
+
+   public boolean isInternal(Node<T> v) {
+      return children(v).hasNext();
+   }
+
+   public boolean isLeaf(Node<T> v) {
+      return !isInternal(v);
+   }
+
+   public int size() {
+      return size;
+   }
+
+   public boolean empty() {
+      return size == 0;
+   }
+
+   public void replace(Node<T> v, T t) {
+      v.setData(t);
+   }
+
+   public int depth(Node<T> v) {
+      if (isRoot(v))
+         return 0;
+      return 1 + depth(parent(v));
+   }
+
+   public int height(Node<T> v) {
+      if (isLeaf(v))
+         return 0;
+      int maxChild = 0;
+      Iterator<? extends Node<T>> c = children(v);
+      while (c.hasNext()) {
+         int hc = height((Node<T>) c.next());
+         if (hc > maxChild)
+            maxChild = hc;
+      }
+      return maxChild + 1;
+   }
+
+   public int height() {
+      if (root == null)
+         return -1;
+      return height(root);
+   }
+
+   public ArrayList<Node<T>> preOrder() {
+      ArrayList<Node<T>> answer = new ArrayList<>();
+      preOrder(root(), answer);
+      return answer;
+   }
+
+   public void preOrder(Node<T> n, ArrayList<Node<T>> v) {
+      if (n == null)
+         return;
+      v.add(n);
+      Iterator<? extends Node<T>> x = children(n);
+      while (x.hasNext()) {
+         Node<T> m = x.next();
+         preOrder(m, v);
+      }
+   }
+
+   public ArrayList<Node<T>> postOrder() {
+      ArrayList<Node<T>> answer = new ArrayList<Node<T>>();
+      postOrder(root(), answer);
+      return answer;
+   }
+
+   public void postOrder(Node<T> n, ArrayList<Node<T>> v) {
+      if (n == null)
+         return;
+      Iterator<? extends Node<T>> x = children(n);
+      while (x.hasNext()) {
+         Node<T> m = x.next();
+         postOrder(m, v);
+      }
+      v.add(n);
+   }
+
+   public ArrayList<Node<T>> levelOrder() {
+      ArrayList<Node<T>> waiting = new ArrayList<>();
+      waiting.add(null);
+      if (root() == null)
+         return waiting;
+      waiting.add(root());
+      int done = 0;
+      while (done < waiting.size()) {
+         Node<T> oldNode = waiting.get(done++);
+         if (oldNode == null) {
+            if (done < waiting.size())
+               waiting.add(null);
+            continue;
+         }
+         Iterator<? extends Node<T>> c = children(oldNode);
+         while (c.hasNext())
+            waiting.add(c.next());
+      }
+      return waiting;
+   }
+
+   public ArrayList<? extends Node<T>> flatOrder() {
+      return preOrder();
+   }
+
+   public String toString() {
+      return treePrint(null);
+   }
+
+   public String treePrint(Node<T> cursor) {
+      String answer = "  ";
+      Iterator<Node<T>> lev = levelOrder().iterator();
+      Iterator<? extends Node<T>> flat = flatOrder().iterator();
+      lev.next(); // skip first new line
+      while (lev.hasNext()) {
+         Node<T> o = lev.next();
+         if (o == null) {
+            answer += "\n  ";
+            flat = flatOrder().iterator();
+         } else
+            while (true) {
+               boolean atCursor = false;
+               Node<T> n = flat.next();
+               if (n == cursor)
+                  atCursor = true;
+               String s = n.getData().toString();
+               if (atCursor)
+                  s = "* " + s + " *";
+               if (n == o) {
+                  answer += s + " ";
+                  break;
+               } else {
+                  for (int i = 0; i < s.length(); i++)
+                     answer += ' ';
+                  answer += ' ';
+               }
+            }
+      }
+      return answer;
+   }
+}
