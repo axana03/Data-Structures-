@@ -1,0 +1,239 @@
+package stack;
+
+import java.util.Scanner;
+
+class ArrayStack<T> implements Stack<T> {
+  private T data[];
+  private int top;
+
+  public ArrayStack() {
+    data = (T[]) new Object[1000];
+    top = -1;
+  }
+
+  public int size() {
+    return top + 1;
+  }
+
+  public boolean empty() {
+    return top == -1;
+  }
+
+  public void push(T x) throws Exception {
+    if (size() == 1000)
+      throw new Exception("Stack Full");
+    data[++top] = x;
+  }
+
+  public T pop() throws Exception {
+    if (empty())
+      throw new Exception("Stack Empty");
+    return data[top--];
+  }
+
+  // methods for testing purposes
+  public String toString() {
+    String ans = "Array Stack<T>:  ";
+    for (int i = top; i >= 0; i--)
+      ans += (data[i] + " -> ");
+    return ans;
+  }
+
+  public static void main(String args[]) {
+    Stack<String> s = new ArrayStack<String>();
+    testStack(s);
+  }
+
+  public static void testStack(Stack<String> s) {
+    boolean done = false;
+    Scanner sc = new Scanner(System.in);
+    while (!done) {
+      try {
+        System.out.print(s + "  ");
+        System.out.println("\ncmds are + - Q: >>");
+        String cmd = sc.next();
+        String entry = null;
+        char command = cmd.charAt(0);
+        if (command == '+')
+          entry = sc.next();
+        switch (cmd.charAt(0)) {
+        case 'Q':
+          done = true;
+          break;
+        case '+':
+          s.push(entry);
+          break;
+        case '-':
+          s.pop();
+          break;
+        }
+      } catch (Exception e) {
+        System.out.println("Error " + e.toString());
+      }
+    }
+    sc.close();
+  }
+}
+_______________________________________________________________________________
+package stack;
+
+import java.util.Stack;
+import java.util.Scanner;
+
+//bracket matching based on Algorithm on p201 Goodrich & Tamassia
+
+public class BrackMatch {
+  public static void main(String args[]) {
+    System.out.println("Enter input tokens separated by spaces");
+    System.out.println("Terminate input with Z");
+    Stack<String> s = new Stack<String>();
+    Scanner input = new Scanner(System.in);
+    try {
+      while (input.hasNext()) {
+        String b = input.next();
+        if (b.equals("Z")) break;
+        if (openBrac(b))
+          s.push(b);
+        if (closeBrac(b)) {
+          if (s.empty())
+            throw new Exception("Unmatched " + b);
+          String c = (String) s.pop();
+          if (!matchBrac(c, b))
+            throw new Exception("Mismatched " + c + b);
+        }
+      }
+      if (s.empty())
+        System.out.println("Brackets are OK");
+      else
+        throw new Exception("Unmatched " + s.pop());
+    } catch (Exception e) {
+      System.out.println("Error: " + e);
+    }
+    input.close();
+  }
+
+  // ------------------------ helper methods are below -------------------
+
+  public static boolean openBrac(String x) {
+    if (x.equals("(") || x.equals("{") || x.equals("["))
+      return true;
+    return false;
+  }
+
+  public static boolean closeBrac(String x) {
+    if (x.equals(")") || x.equals("}") || x.equals("]"))
+      return true;
+    return false;
+  }
+
+  public static boolean matchBrac(String x, String y) {
+    if (x.equals("(") && y.equals(")"))
+      return true;
+    if (x.equals("{") && y.equals("}"))
+      return true;
+    if (x.equals("[") && y.equals("]"))
+      return true;
+    return false;
+  }
+}
+________________________________________________________________________________________________________
+package stack;
+
+import listNode.Node;
+
+class LinkedStack<T> implements Stack<T> {
+   private Node<T> top;
+   private int size;
+
+   public LinkedStack() {
+      top = null;
+      size = 0;
+   }
+
+   public int size() {
+      return size;
+   }
+
+   public boolean empty() {
+      return size == 0;
+   }
+
+   public T pop() throws Exception {
+      if (empty())
+         throw new Exception();
+      T answer = top.getData();
+      top = top.getNext();
+      size--;
+      return answer;
+   }
+
+   public void push(T x) {
+      Node<T> newtop = new Node<T>(x, top);
+      top = newtop;
+      size++;
+   }
+
+   public String toString() {
+      String ans = "Linked Stack<T>:  ";
+      Node<T> n = top;
+      while (n != null) {
+         ans += (n.getData() + " -> ");
+         n = n.getNext();
+      }
+      return ans;
+   }
+
+   public static void main(String args[]) {
+      Stack<String> s = new LinkedStack<String>();
+      ArrayStack.testStack(s);
+   }
+}
+___________________________________________________________________________________________
+package stack;
+
+import linkedList.LinkedList;
+
+class ListAdapterStack<T> implements Stack<T> {
+  private LinkedList<T> l;
+
+  public ListAdapterStack() {
+    l = new LinkedList<T>();
+  }
+
+  public int size() {
+    return l.size();
+  }
+
+  public boolean empty() {
+    return l.isEmpty();
+  }
+
+  public void push(T d) {
+    l.addHead(d);
+  }
+
+  public T pop() throws Exception {
+    return l.removeHead();
+  }
+
+  public String toString() {
+    return l.toString();
+  }
+
+  public static void main(String args[]) {
+    Stack<String> s = new ListAdapterStack<String>();
+    ArrayStack.testStack(s);
+  }
+}
+_______________________________________________________________________________________
+package stack;
+
+interface Stack<T> {
+   public T pop() throws Exception;
+
+   public void push(T x) throws Exception;
+
+   public boolean empty();
+
+   public int size();
+}
