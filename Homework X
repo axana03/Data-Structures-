@@ -1,0 +1,158 @@
+Homework X:  Implementation of a class to calculate with polynomials stored as a (doubly) linked list.
+//
+// The Utility.run method is designed to print a pair of polynomials together with their sum, difference,
+// product, quotient and remainder.  
+
+/* For the 2 polynomials included with the same main program that calls run, the output should be:
+ 
+Polynomials
+p =  X^5
+q =  X^2 -X + 1.0
+Sum  X^5 + X^2 -X + 1.0
+Difference  X^5 -X^2 + X -1.0
+Product  X^7 -X^6 + X^5
+Quotient  X^3 + X^2 -1.0
+Remainder  -X + 1.0
+
+*/
+
+
+//  Your task in this homework is to write a complete implementation for the
+//  class X00000000 which is used to implement the polynomial operations.
+//  You will need to store terms of a polynomial in the nodes of a linked list, the head
+//  should store the term with highest degree and the tail the term with lowest degree.
+//  The implementations of the classes for node, list and term are fully implemented for you.
+//  An abstract class Polynomial provides a method to print polynomials.  You should make
+//  use of all these features and not try to reimplement any of them.
+
+//  You should change the name X00000000 so that the last 8 digits are your QC ID number.
+//  You should only make changes inside this class.
+//  You do not need any more than 200 lines of code in the class.
+//  After you have tested your work on venus (as well as in your development environment,
+//  cut the file at the indicated point above the abstract class Polynomial and submit it by email.
+//  Do not make any changes to the code below this line.
+
+// Grading policy:
+// 1 Point for homework that compiles correctly
+// 1 Point for homework that has a correct constructor that handles a String argument to specify a polynomial
+// 1 Point for homework that correctly adds and subtracts polynomials
+// 1 Point for homework that correctly multiplies, divides and finds a remainder for polynomials.
+// Maximum homework score = 4 points.
+
+// Advice:
+// There are three main steps to overcome:
+//  1. Write the constructor to enter data from a String giving a polynomial
+//  2. Write the add method, the subtract method will be very similar
+//  3. Write the multiply method, this helps with the divide method although that still needs
+//     work.  The remainder method is then easy.
+//
+//  The main problems in the constructor are to break the input string apart into terms and to deal
+//  with conventions about (shortcuts in) formulas for terms.  How can we tell that a point of the 
+//  String is the beginning of a new term?  What missing parts of a term might need to be added in? 
+//
+//  The add method works rather similarly to the merge method of mergeSort.  Can you see why these
+//  are similar?
+//
+//  The multiply method needs to repeatedly multiply a single term from the first polynomial by the
+//  second polynomial and use the add method to add together the results.  
+
+//  See also the general homework guidelines for other instructions before you submit work. 
+----------------------------------------------------------------------------------------------
+public class Xxxxxxxxx extends Polynomial {
+   public static void main(String args[]) throws Exception {
+      Polynomial p = new Xxxxxxxxx(" X^5"), 
+            q = new Xxxxxxxxx("X^2 - X + 1");
+      Utility.run(p, q);
+   }
+   
+   public Xxxxxxxxx(String s) {
+      s = s.replaceAll("\\s+","");
+      s = s.replaceAll("-","+-");
+      String terms[] = s.toUpperCase().split("\\+",-1);
+      for (int i = 0; i < terms.length; i++) {
+         if (terms[i].startsWith("X") || terms[i].startsWith("-X")) terms[i] = terms[i].replace("X", "1X");
+         if (terms[i].endsWith("X")) terms[i] = terms[i] + "^1";
+         if (!terms[i].contains("X")) terms[i] = terms[i] + "X^0";
+         String[] parts = terms[i].split("X\\^", -1);
+         data.addLast(new Term(new Double(parts[0]), new Integer(parts[1])));
+      }
+   }
+
+   public Xxxxxxxxx() {
+      super();
+   }
+
+   private DNode<Term> nextTerm(DNode<Term> n) {
+      try {
+         if (n == null) n = data.getFirst();
+         else n = data.getNext(n);
+        } catch (Exception e) { 
+           return null;
+        }
+        return n;
+   }
+   
+   public Polynomial add(Polynomial p) {
+      Polynomial ans = new Xxxxxxxxx();
+      DNode<Term> n = null, m = null;
+      n = nextTerm(n);
+      m = ((Xxxxxxxxx) p).nextTerm(m);
+      while (m != null || n != null) {
+         if (n == null || (m != null && m.getData().degree > n.getData().degree)) {
+            ans.data.addLast(m.getData());
+            m = ((Xxxxxxxxx) p).nextTerm(m);
+         }
+         else if (m == null || m.getData().degree < n.getData().degree) {
+            ans.data.addLast(n.getData());
+            n = nextTerm(n);
+         }
+         else {
+            Term t = new Term(m.getData().coefficient + n.getData().coefficient, m.getData().degree);
+            if (t.coefficient != 0) ans.data.addLast(t);
+            m = ((Xxxxxxxxx) p).nextTerm(m);
+            n = nextTerm(n);
+         }
+      }
+      return ans;
+   }
+   
+   private Polynomial rescale(double scaleFactor, int degreeOffset) {
+      Polynomial ans = new Xxxxxxxxx();
+      DNode<Term> n = null;
+      while ((n = nextTerm(n)) != null)
+         ans.data.addLast(new Term(scaleFactor * n.getData().getCoefficient(), n.getData().getDegree() + degreeOffset));
+      return ans;
+   }
+
+   public Polynomial subtract(Polynomial p) {
+      return add(((Xxxxxxxxx) p).rescale(-1.0, 0));
+   }
+
+   public Polynomial multiply(Polynomial p) {
+      Polynomial ans = new Xxxxxxxxx();
+      DNode<Term> n = null;
+      while ((n = nextTerm(n)) != null)
+         ans = ans.add(((Xxxxxxxxx) p).rescale(n.getData().coefficient, n.getData().degree));
+      return ans;
+   }
+
+   public Polynomial divide(Polynomial p) throws Exception {
+      DNode<Term> n = nextTerm(null);
+      DNode<Term> m =  ((Xxxxxxxxx) p).nextTerm(null);
+      if (m == null) throw new Exception("Illegal division by 0");
+      if (n == null || m.getData().degree > n.getData().degree) return new Xxxxxxxxx();
+      Term t = new Term(n.getData().coefficient / m.getData().coefficient, n.getData().degree - m.getData().degree);
+      Polynomial ans = new Xxxxxxxxx();
+      ans.data.addLast(t);
+      Polynomial remain = subtract(ans.multiply(p));
+      try {
+         t = remain.data.getFirst().getData();
+         if (t.degree == n.getData().degree) remain.data.remove(remain.data.getFirst());
+      } catch (Exception e){}
+      return ans.add(remain.divide(p));
+   }
+
+   public Polynomial remainder(Polynomial p) throws Exception {
+      return subtract(divide(p).multiply(p));
+   }
+}                          
